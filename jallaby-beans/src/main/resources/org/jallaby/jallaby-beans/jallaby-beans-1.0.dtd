@@ -1,0 +1,25 @@
+<!ELEMENT state-machine (event+, state+)>
+<!ATTLIST state-machine name CDATA #REQUIRED
+						initial-state CDATA #REQUIRED>
+
+<!ELEMENT event (property*)>
+<!ATTLIST event	name CDATA #REQUIRED
+				extends CDATA #IMPLIED
+				modifier (abstract | final) #IMPLIED>
+
+<!ELEMENT property EMPTY>
+<!ATTLIST property	name CDATA #REQUIRED
+					type CDATA #REQUIRED
+					visibility (private) #IMPLIED>
+
+<!ELEMENT state (transition*)>
+<!ATTLIST state name CDATA #REQUIRED
+				extends CDATA #IMPLIED
+				modifier (abstract | final) #IMPLIED>
+
+<!ELEMENT transition (event-ref+)>
+<!ATTLIST transition	to CDATA #REQUIRED
+						visibility (private) #IMPLIED>
+						
+<!ELEMENT event-ref EMPTY>
+<!ATTLIST event-ref name CDATA #REQUIRED>

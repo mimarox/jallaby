@@ -1,0 +1,53 @@
+<!DOCTYPE state-machine SYSTEM "http://jallaby.org/jallaby-beans-1.0.dtd">
+<state-machine name="CoffeeMachine" initial-state="SwitchedOff">
+	
+	<!-- Events -->
+	<event name="switchOn" />
+	<event name="makeCoffee">
+		<property name="type" type="string" />
+	</event>
+	<event name="waterEmpty" />
+	<event name="coffeeEmpty" />
+	<event name="milkEmpty" />
+	<event name="sugarEmpty" />
+	<event name="finished" />
+	<event name="switchOff" />
+	
+	<!-- States -->
+	<state name="SwitchedOff">
+		<transition to="Idle">
+			<event-ref name="switchOn" />
+		</transition>
+	</state>
+	<state name="SwitchedOn" />
+	<state name="Idle" extends="SwitchedOn">
+		<transition to="MakingCoffee">
+			<event-ref name="makeCoffee" />
+		</transition>
+		<transition to="RefillingWater">
+			<event-ref name="waterEmpty" />
+		</transition>
+		<transition to="RefillingCoffee">
+			<event-ref name="coffeeEmpty" />
+		</transition>
+		<transition to="RefillingMilk">
+			<event-ref name="milkEmpty" />
+		</transition>
+		<transition to="RefillingSugar">
+			<event-ref name="sugarEmpty" />
+		</transition>
+		<transition to="SwitchedOff">
+			<event-ref name="switchOff" />
+		</transition>
+	</state>
+	<state name="Finishable" extends="SwitchedOn" modifier="abstract">
+		<transition to="Idle">
+			<event-ref name="finished" />
+		</transition>
+	</state>
+	<state name="MakingCoffee" extends="Finishable" />
+	<state name="RefillingWater" extends="Finishable" />
+	<state name="RefillingCoffee" extends="Finishable" />
+	<state name="RefillingMilk" extends="Finishable" />
+	<state name="RefillingSugar" extends="Finishable" />
+</state-machine>

@@ -1,0 +1,12 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Jallaby Core">
+	<test verbose="2" name="All Tests" annotations="JDK">
+		<packages>
+			<package name="org.jallaby.beans" />
+			<package name="org.jallaby.beans.xml.model" />
+			<package name="org.jallaby.beans.xml.sourcing.validation" />
+			<package name="org.jallaby.beans.xml.sourcing" />
+			<package name="org.jallaby.beans.xml.tree" />
+		</packages>
+	</test>
+</suite>

@@ -1,0 +1,8 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Jallaby Core">
+	<test verbose="2" name="All Tests" annotations="JDK">
+		<packages>
+			<package name="org.jallaby" />
+		</packages>
+	</test>
+</suite>
