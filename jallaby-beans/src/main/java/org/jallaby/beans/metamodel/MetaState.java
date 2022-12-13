@@ -66,7 +66,7 @@ public class MetaState implements LifecycleBean, State {
 	private final Injector injector;
 	
 	private final List<Event> offeredEvents = new ArrayList<>();
-	private List<EffectiveXmlTransition> candidateXmlTransitions;
+	private List<EffectiveXmlTransition> candidateXmlTransitions = new ArrayList<>();
 	
 	private EffectiveXmlState xmlState;
 	private Method preDestroyMethod;
@@ -97,6 +97,8 @@ public class MetaState implements LifecycleBean, State {
 		this.xmlStateMachine = xmlStateMachine;
 		this.beansRegistry = beansRegistry;
 		this.injector = injector;
+		
+		postConstruct();
 	}
 
 	@Override

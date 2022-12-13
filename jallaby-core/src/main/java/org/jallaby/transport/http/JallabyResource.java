@@ -24,16 +24,18 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.jallaby.Jallaby;
 import org.jallaby.event.Event;
 import org.jallaby.event.EventProcessingException;
 
-@Path("/{stateMachineName}/{instanceId}/{eventName}")
+@Path("/{stateMachineName}")
 public class JallabyResource {
 	private Jallaby jallaby = new Jallaby();
 	
 	@PUT
+	@Path("/{instanceId}/{eventName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Object receiveEvent(@PathParam("stateMachineName") String stateMachineName,
@@ -45,7 +47,10 @@ public class JallabyResource {
 			Event event = new Event(stateMachineName, instanceId, eventName, entity);
 			return jallaby.receiveEvent(event);
 		} catch (EventProcessingException e) {
-			return e.getError();
+			return Response.status(503).entity(e.getError()).build();
+		} catch (Exception e) {
+			return Response.status(503).entity(
+					new GenericError(e.getClass().getCanonicalName(), e.getMessage())).build();
 		}
 	}
 }

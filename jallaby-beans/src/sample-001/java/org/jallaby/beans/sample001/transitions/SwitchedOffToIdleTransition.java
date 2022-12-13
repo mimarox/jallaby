@@ -6,8 +6,8 @@ import org.jallaby.beans.sample001.business.CoffeeMachine;
 
 import com.google.inject.Inject;
 
-@Transition(fromState = "SwitchedOff", toState = "SwitchedOn")
-public class SwitchedOffToSwitchedOnTransition {
+@Transition(fromState = "SwitchedOff", toState = "Idle")
+public class SwitchedOffToIdleTransition {
 	
 	@Inject
 	private CoffeeMachine coffeeMachine;

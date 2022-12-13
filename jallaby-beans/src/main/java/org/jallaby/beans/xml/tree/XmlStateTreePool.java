@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jallaby.beans.xml.model.XmlModifier;
 import org.jallaby.beans.xml.model.XmlState;
 import org.jallaby.beans.xml.model.XmlStateInfo;
 import org.jallaby.beans.xml.model.effective.EffectiveXmlState;
@@ -84,6 +85,7 @@ public class XmlStateTreePool {
 	}
 
 	public XmlStateInfo getXmlTargetStateInfo(final String fromStateName, final String toStateName) {
+		//FIXME for some reason null can end up as a value in the states list
 		int statesToExit = 0;
 		Deque<EffectiveXmlState> states = new LinkedList<>();
 		
@@ -95,14 +97,17 @@ public class XmlStateTreePool {
 		} else if (isDescendantOf(toStateName, fromStateNode)) {
 			states.addAll(findEffectiveXmlStates(fromStateNode, toStateName));
 		} else {
+			statesToExit++;
 			XmlStateTreeNode parentNode = fromStateNode;
 			
 			while ((parentNode = parentNode.getParent()) != null) {
-				statesToExit++;
-				
 				if (isDescendantOf(toStateName, parentNode)) {
 					states.addAll(findEffectiveXmlStates(parentNode, toStateName));
 					break;
+				} else {
+					if (parentNode.getState().getModifier() != XmlModifier.xmlAbstract) {
+						statesToExit++;
+					}
 				}
 			}
 			
@@ -134,15 +139,17 @@ public class XmlStateTreePool {
 	}
 
 	private boolean isDescendantOf(final String stateName, XmlStateTreeNode node) {
+		boolean isDescendantOf = false;
+		
 		for (XmlStateTreeNode child : node.getChildren()) {
 			if (child.getState().getName().equals(stateName)) {
 				return true;
 			} else {
-				return isDescendantOf(stateName, child);
+				isDescendantOf = isDescendantOf(stateName, child);
 			}
 		}
 		
-		return false;
+		return isDescendantOf;
 	}
 
 	private Deque<EffectiveXmlState> findEffectiveXmlStates(final XmlStateTreeNode fromStateNode,
@@ -157,7 +164,9 @@ public class XmlStateTreePool {
 		//CHECKSTYLE:OFF
 		while (!isFinalNode(parentNode = parentNode.getParent(), fromStateNode)) {
 		//CHECKSTYLE:ON
-			states.addFirst(makeEffectiveXmlState(parentNode));
+			if (parentNode.getState().getModifier() != XmlModifier.xmlAbstract) {
+				states.addFirst(makeEffectiveXmlState(parentNode));
+			}
 		}
 		
 		return states;

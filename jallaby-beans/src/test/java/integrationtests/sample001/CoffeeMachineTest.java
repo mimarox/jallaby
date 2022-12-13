@@ -1,7 +1,9 @@
 package integrationtests.sample001;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
@@ -16,23 +18,28 @@ import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.jallaby.beans.sample001.business.CoffeeMachine;
 import org.jallaby.beans.sample001.business.ICoffeeMachine;
-import org.jallaby.event.EventResult;
 import org.jallaby.launcher.Launcher;
 import org.testng.annotations.Test;
 
+import integrationtests.common.EventResult;
+import integrationtests.common.InternalServerErrorException;
 import integrationtests.common.JallabyApi;
 import integrationtests.common.JallabyApiProvider;
+import integrationtests.common.UnexpectedServerResponseException;
+import retrofit2.Response;
 
 public class CoffeeMachineTest {
-
+	private static final String UUID = "fee5a05c-5f52-45dd-926a-9f2bc7f097ee";
+	
 	@Test
 	public void testCoffeeMachine() throws Exception {
 		startJallaby();
 		buildSample();
 
-		ICoffeeMachine coffeeMachine = mock(ICoffeeMachine.class);
+		Thread.sleep(5000);
 		
-		Thread.sleep(10000);
+		ICoffeeMachine coffeeMachine = mock(ICoffeeMachine.class);
+		when(coffeeMachine.hasPower()).thenReturn(true);
 		
 		CoffeeMachine.instance = coffeeMachine;
 
@@ -42,10 +49,29 @@ public class CoffeeMachineTest {
 		
 		result = sendEvent(api, "switchOn");
 		
-		assertEquals(result.getCurrentStateName(), "SwitchedOn");
-		
-		// verify results
+		assertEquals(result.getCurrentStateName(), "Idle");
 		verify(coffeeMachine).switchOn();
+		verify(coffeeMachine).sleep();
+		
+		String coffeeType = "Latte Macchiato";
+		
+		Map<String, Object> type = new HashMap<>();
+		type.put("type", coffeeType);
+		result = sendEvent(api, "makeCoffee", type);
+		
+		assertEquals(result.getCurrentStateName(), "MakingCoffee");
+		verify(coffeeMachine).wakeUp();
+		verify(coffeeMachine).makeCoffee(coffeeType);
+		
+		result = sendEvent(api, "finished");
+		
+		assertEquals(result.getCurrentStateName(), "Idle");
+		verify(coffeeMachine, times(2)).sleep();
+		
+		result = sendEvent(api, "switchOff");
+		
+		assertEquals(result.getCurrentStateName(), "SwitchedOff");
+		verify(coffeeMachine, times(2)).switchOff();
 	}
 
 	private void startJallaby() {
@@ -78,6 +104,15 @@ public class CoffeeMachineTest {
 	
 	private EventResult sendEvent(final JallabyApi api, final String event,
 			final Map<String, Object> body) throws Exception {
-		return api.sendEvent("CoffeeMachine", "integration-test", event, body).execute().body();
+		Response<EventResult> response = api.sendEvent("CoffeeMachine", UUID,
+				event, body).execute();
+		
+		if (response.isSuccessful()) {
+			return response.body();
+		} else if (response.code() == 503){
+			throw new InternalServerErrorException(response.errorBody().string());
+		} else {
+			throw new UnexpectedServerResponseException(response.errorBody().string());
+		}
 	}
 }

@@ -183,6 +183,8 @@ public class MetaTransition implements LifecycleBean, Transition {
 		this.xmlStateMachine = xmlStateMachine;
 		this.beansRegistry = beansRegistry;
 		this.injector = injector;
+		
+		postConstruct();
 	}
 
 	@Override

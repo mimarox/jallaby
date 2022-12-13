@@ -37,13 +37,13 @@ public class Jallaby {
 	 * @return the result of processing the event
 	 * @throws EventProcessingException in case of an error while processing the received event
 	 */
-	public EventResult receiveEvent(Event event) throws EventProcessingException {
-		StateMachine metaStateMachine = registry.get(
+	public EventResult receiveEvent(final Event event) throws EventProcessingException {
+		StateMachine stateMachine = registry.get(
 				event.getStateMachineName(), event.getInstanceId());
 		
-		if (metaStateMachine != null) {
-			if (metaStateMachine.isValidEvent(event)) {
-				return metaStateMachine.processEvent(event);
+		if (stateMachine != null) {
+			if (stateMachine.isValidEvent(event)) {
+				return stateMachine.processEvent(event);
 			} else {
 				throw new EventProcessingException(eventInvalidError(event));
 			}
@@ -52,7 +52,7 @@ public class Jallaby {
 		}
 	}
 
-	private EventError eventInvalidError(Event event) {
+	private EventError eventInvalidError(final Event event) {
 		return new EventError(
 				event.getStateMachineName(),
 				event.getInstanceId().toString(),
@@ -61,7 +61,7 @@ public class Jallaby {
 				100);
 	}
 
-	private EventError stateMachineUnknownError(Event event) {
+	private EventError stateMachineUnknownError(final Event event) {
 		return new EventError(
 				event.getStateMachineName(),
 				event.getInstanceId().toString(),

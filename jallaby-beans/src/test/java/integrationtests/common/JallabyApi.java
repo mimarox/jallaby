@@ -2,8 +2,6 @@ package integrationtests.common;
 
 import java.util.Map;
 
-import org.jallaby.event.EventResult;
-
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.PUT;
