@@ -7,7 +7,7 @@ import java.util.Set;
 import org.jallaby.beans.xml.model.effective.EffectiveXmlEvent;
 import org.jallaby.beans.xml.model.effective.EffectiveXmlProperty;
 import org.jallaby.event.Event;
-import org.jallaby.execution.EventValidator;
+import org.jallaby.event.EventValidator;
 
 /**
  * The default event validator, checking whether a given event is defined in the XML declaration

@@ -26,6 +26,7 @@ import org.jallaby.event.Event;
 import org.jallaby.event.EventError;
 import org.jallaby.event.EventProcessingException;
 import org.jallaby.event.EventResult;
+import org.jallaby.event.EventValidator;
 import org.jallaby.util.Stack;
 
 public class StateMachine {

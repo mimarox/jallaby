@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.jallaby.beans.annotations.State;
 import org.jallaby.beans.annotations.Transition;
-import org.jallaby.execution.EventValidator;
+import org.jallaby.event.EventValidator;
 
 import com.google.inject.Module;
 

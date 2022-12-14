@@ -33,7 +33,7 @@ import org.jallaby.beans.metamodel.sourcing.BeanClassesProvider;
 import org.jallaby.beans.xml.model.effective.EffectiveXmlEvent;
 import org.jallaby.beans.xml.model.effective.EffectiveXmlStateMachine;
 import org.jallaby.beans.xml.sourcing.XmlDeclarationProvider;
-import org.jallaby.execution.EventValidator;
+import org.jallaby.event.EventValidator;
 import org.jallaby.execution.StateMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

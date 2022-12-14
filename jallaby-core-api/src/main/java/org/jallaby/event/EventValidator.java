@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.jallaby.execution;
-
-import org.jallaby.event.Event;
+package org.jallaby.event;
 
 /**
  * Interface for validating events.

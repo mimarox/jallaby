@@ -18,7 +18,7 @@ package org.jallaby.beans.metamodel.sourcing;
 
 import java.util.Set;
 
-import org.jallaby.execution.EventValidator;
+import org.jallaby.event.EventValidator;
 
 import com.google.inject.Module;
 
