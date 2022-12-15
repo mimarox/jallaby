@@ -29,6 +29,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -88,34 +89,20 @@ public class JallabyBeansWorker extends Thread {
 					break;
 				}
 
-				for (WatchEvent<?> event : newKey.pollEvents()) {
+				/* inner: */ for (WatchEvent<?> event : newKey.pollEvents()) {
 					synchronized (abortMutex) {
 						if (abort) {
 							break outer;
 						}
 					}
-
+					
 					Kind<?> kind = event.kind();
 
 					if (kind == OVERFLOW) {
 						continue;
 					}
-
-					// Context for directory entry event is the file name of entry
-					WatchEvent<Path> ev = cast(event);
-					Path name = ev.context();
-					Path file = deployDirectory.resolve(name);
-
-					if (file.getFileName().toString().endsWith(".sma")) {
-						if (kind == ENTRY_CREATE) {
-							createStateMachine(file);
-						} else if (kind == ENTRY_MODIFY) {
-							unregisterStateMachine(file);
-							createStateMachine(file);
-						} else if (kind == ENTRY_DELETE) {
-							unregisterStateMachine(file);
-						}
-					}
+					
+					handleEvent(deployDirectory, event);
 				}
 
 				// reset key and remove from set if directory no longer accessible
@@ -131,10 +118,30 @@ public class JallabyBeansWorker extends Thread {
 		}
 	}
 
+	private void handleEvent(final Path deployDirectory, final WatchEvent<?> event) {
+		Kind<?> kind = event.kind();
+
+		// Context for directory entry event is the file name of entry
+		WatchEvent<Path> ev = cast(event);
+		Path name = ev.context();
+		Path file = deployDirectory.resolve(name);
+
+		if (file.getFileName().toString().endsWith(".sma")) {
+			if (kind == ENTRY_CREATE) {
+				createStateMachine(file);
+			} else if (kind == ENTRY_MODIFY) {
+				unregisterStateMachine(file);
+				createStateMachine(file);
+			} else if (kind == ENTRY_DELETE) {
+				unregisterStateMachine(file);
+			}
+		}
+	}
+	
 	private void registerExistingStateMachines(final Path deployDirectory) {
-		deployDirectory.forEach(path -> {
-			if (path.getFileName().toString().endsWith(".sma")) {
-				createStateMachine(path);
+		Arrays.asList(deployDirectory.toFile().listFiles()).forEach(file -> {
+			if (file.getName().toString().endsWith(".sma")) {
+				createStateMachine(file.toPath());
 			}
 		});
 	}

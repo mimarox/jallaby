@@ -1,7 +1,11 @@
 package org.jallaby.beans.sample001.business;
 
-public class CoffeeMachine implements ICoffeeMachine {
-	public static ICoffeeMachine instance;
+public class CoffeeMachine implements CoffeeMachineInterface {
+	private static CoffeeMachineInterface instance;
+	
+	public static void setInstance(final CoffeeMachineInterface instance) {
+		CoffeeMachine.instance = instance;
+	}
 	
 	@Override
 	public void switchOn() {

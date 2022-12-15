@@ -6,42 +6,32 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.maven.shared.invoker.DefaultInvocationRequest;
-import org.apache.maven.shared.invoker.DefaultInvoker;
-import org.apache.maven.shared.invoker.InvocationRequest;
-import org.apache.maven.shared.invoker.Invoker;
-import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.jallaby.beans.sample001.business.CoffeeMachine;
-import org.jallaby.beans.sample001.business.ICoffeeMachine;
-import org.jallaby.launcher.Launcher;
+import org.jallaby.beans.sample001.business.CoffeeMachineInterface;
 import org.testng.annotations.Test;
 
 import integrationtests.common.EventResult;
 import integrationtests.common.InternalServerErrorException;
 import integrationtests.common.JallabyApi;
 import integrationtests.common.JallabyApiProvider;
-import integrationtests.common.UnexpectedServerResponseException;
-import retrofit2.Response;
 
-public class CoffeeMachineTest {
-	private static final String UUID = "fee5a05c-5f52-45dd-926a-9f2bc7f097ee";
+public class CoffeeMachineTest extends Sample001TestBase {
 	
 	@Test
 	public void testCoffeeMachine() throws Exception {
+		deleteStateMachineArchive();
 		startJallaby();
 		buildSample();
 
 		Thread.sleep(5000);
 		
-		ICoffeeMachine coffeeMachine = mock(ICoffeeMachine.class);
+		CoffeeMachineInterface coffeeMachine = mock(CoffeeMachineInterface.class);
 		when(coffeeMachine.hasPower()).thenReturn(true);
 		
-		CoffeeMachine.instance = coffeeMachine;
+		CoffeeMachine.setInstance(coffeeMachine);
 
 		// send events to jallaby container
 		EventResult result;
@@ -73,46 +63,17 @@ public class CoffeeMachineTest {
 		assertEquals(result.getCurrentStateName(), "SwitchedOff");
 		verify(coffeeMachine, times(2)).switchOff();
 	}
-
-	private void startJallaby() {
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					Launcher.main(null);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}, "Jallaby Container").start();
-	}
-
-	private void buildSample() throws MavenInvocationException {
-		InvocationRequest request = new DefaultInvocationRequest();
-		request.setPomFile(new File(System.getProperty("user.dir") + "/src/sample-001/pom.xml"));
-		request.setGoals(Arrays.asList("clean", "install"));
-
-		Invoker invoker = new DefaultInvoker();
-		invoker.setMavenHome(new File("d:\\dev\\apache-maven-3.6.2"));
-		invoker.execute(request);
-	}
 	
-	private EventResult sendEvent(final JallabyApi api, final String event) throws Exception {
-		return sendEvent(api, event, new HashMap<>());
-	}
-	
-	private EventResult sendEvent(final JallabyApi api, final String event,
-			final Map<String, Object> body) throws Exception {
-		Response<EventResult> response = api.sendEvent("CoffeeMachine", UUID,
-				event, body).execute();
+	@Test(dependsOnMethods = "testCoffeeMachine",
+			expectedExceptions = InternalServerErrorException.class,
+			expectedExceptionsMessageRegExp = "{\"errorCode\":200,\"errorDescription\":"
+					+ "\"The given state machine is unknown.\",\"eventName\":\"switchOn\","
+					+ "\"instanceId\":\"fee5a05c-5f52-45dd-926a-9f2bc7f097ee\","
+					+ "\"stateMachineName\":\"CoffeeMachine\"}")
+	public void testUnregisterStateMachine() throws Exception {
+		deleteStateMachineArchive();
 		
-		if (response.isSuccessful()) {
-			return response.body();
-		} else if (response.code() == 503){
-			throw new InternalServerErrorException(response.errorBody().string());
-		} else {
-			throw new UnexpectedServerResponseException(response.errorBody().string());
-		}
+		JallabyApi api = JallabyApiProvider.provideApi();
+		sendEvent(api, "switchOn");
 	}
 }

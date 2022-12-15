@@ -8,7 +8,7 @@ import org.jallaby.beans.sample001.business.CoffeeMachine;
 
 import com.google.inject.Inject;
 
-@State(name="SwitchedOn")
+@State(name = "SwitchedOn")
 public class SwitchedOn {
 	
 	@Inject
