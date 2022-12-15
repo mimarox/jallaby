@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jallaby</groupId>
 	<artifactId>jallaby-beans-api</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<name>Jallaby Beans API</name>
 	<description>API for Jallaby Beans</description>
 	<url>https://github.com/mimarox/jallaby/tree/main/jallaby-beans-api</url>
@@ -18,7 +18,7 @@
 		<connection>scm:git:https://github.com/mimarox/jallaby.git</connection>
 		<developerConnection>scm:git:https://github.com/mimarox/jallaby.git</developerConnection>
 		<url>https://github.com/mimarox/jallaby</url>
-	  <tag>HEAD</tag>
+	  <tag>jallaby-beans-api-1.0.1</tag>
   </scm>
 	<developers>
 		<developer>
