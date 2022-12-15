@@ -19,12 +19,17 @@ package org.jallaby.launcher;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.NoSuchElementException;
+import java.util.Properties;
 
-import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.jallaby.JallabyRegistry;
 import org.jallaby.spi.LifecycleHook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Launches the Jallaby container.
@@ -32,9 +37,8 @@ import org.jallaby.spi.LifecycleHook;
  * @author Matthias Rothe
  */
 public class Launcher {
-	// Base URI the Grizzly HTTP server will listen on
-	public static final String HTTP_BASE_URI = "http://localhost:8080/";
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(Launcher.class);
+	
 	private static LifecycleHook hook;
 
 	private Launcher() {
@@ -53,9 +57,42 @@ public class Launcher {
 	 * 
 	 * @return Grizzly HTTP server.
 	 */
-	public static HttpServer startHttpServer() {
+	public static String startHttpServer() {
+		URI httpBaseUri = getHttpBaseUri();
 		final ResourceConfig rc = new ResourceConfig().packages("org.jallaby.transport.http");
-		return GrizzlyHttpServerFactory.createHttpServer(URI.create(HTTP_BASE_URI), rc);
+		GrizzlyHttpServerFactory.createHttpServer(httpBaseUri, rc);
+		
+		return httpBaseUri.toString();
+	}
+
+	private static URI getHttpBaseUri() {
+		String httpBase;
+		
+		try {
+			URL jallabyPropertiesUrl = new URL(String.format("file:///%1$s%2$sconfig%2$sjallaby"
+					+ ".properties", System.getProperty("user.dir"),
+					System.getProperty("file.separator")));
+			Properties jallabyProperties = new Properties();
+			jallabyProperties.load(jallabyPropertiesUrl.openStream());
+			httpBase = jallabyProperties.getProperty("http.base.url");
+			
+			if (httpBase == null || httpBase.trim().equals("")) {
+				throw new NoSuchElementException("Properties file doesn't contain a key value pair"
+						+ " for http.base.url");
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Couldn't find http base url property. "
+					+ "Defaulting to http://localhost:8081/.", e);
+			httpBase = "http://localhost:8081/";
+		}
+		
+		try {
+			return new URI(httpBase);
+		} catch (URISyntaxException e) {
+			LOGGER.error("Unable to build http base uri. System will exit!", e);
+			System.exit(1);
+			return null;
+		}
 	}
 
 	/**
@@ -68,13 +105,13 @@ public class Launcher {
 	public static void main(String[] args) throws Exception {
 		loadAndStartLifecycleHook();
 
-		final HttpServer httpServer = startHttpServer();
-		System.out.println(String.format("HTTP server started at %s", HTTP_BASE_URI));
-
+		String httpBaseUri = startHttpServer();
+		System.out.println(String.format("HTTP server started at %s", httpBaseUri));
+		System.out.println("Press any key to stop the server...");
+		
 		System.in.read();
 
 		hook.stop();
-		httpServer.stop();
 	}
 	// CHECKSTYLE:ON
 }

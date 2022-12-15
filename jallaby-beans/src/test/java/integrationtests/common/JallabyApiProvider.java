@@ -18,7 +18,7 @@ public class JallabyApiProvider {
 					.build();
 			
 			Retrofit retrofit = new Retrofit.Builder().
-					baseUrl("http://localhost:8080/").
+					baseUrl("http://localhost:8081/").
 					addConverterFactory(JacksonConverterFactory.create()).
 					client(client).
 					build();
