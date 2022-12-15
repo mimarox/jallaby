@@ -85,7 +85,6 @@ public class XmlStateTreePool {
 	}
 
 	public XmlStateInfo getXmlTargetStateInfo(final String fromStateName, final String toStateName) {
-		//FIXME for some reason null can end up as a value in the states list
 		int statesToExit = 0;
 		Deque<EffectiveXmlState> states = new LinkedList<>();
 		

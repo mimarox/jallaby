@@ -17,6 +17,7 @@
 package org.jallaby;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -81,5 +82,27 @@ public class JallabyRegistry {
 	
 	private String crateKey(String stateMachineName, UUID instanceId) {
 		return stateMachineName + "/" + instanceId;
+	}
+
+	/**
+	 * Unregisters a StateMachine.
+	 * 
+	 * @param name The name of the state machine to be unregistered
+	 */
+	public void unregister(String name) {
+		blueprints.remove(name);
+		removeFromInstances(name);
+	}
+	
+	private void removeFromInstances(final String name) {
+		Iterator<String> iterator = instances.keySet().iterator();
+		
+		while (iterator.hasNext()) {
+			String id = iterator.next();
+			
+			if (id.startsWith(name)) {
+				iterator.remove();
+			}
+		}
 	}
 }

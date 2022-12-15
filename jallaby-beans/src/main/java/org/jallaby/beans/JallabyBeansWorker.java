@@ -17,6 +17,7 @@
 package org.jallaby.beans;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
@@ -28,6 +29,8 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.jallaby.JallabyRegistry;
@@ -36,8 +39,9 @@ import org.jallaby.execution.StateMachine;
 public class JallabyBeansWorker extends Thread {
 	private final JallabyRegistry registry;
 	private final StateMachineBuilder stateMachineBuilder;
-
-	private Object abortMutex = new Object();
+	private final Map<Path, String> stateMachines = new HashMap<>();
+	private final Object abortMutex = new Object();
+	
 	private boolean abort;
 
 	public JallabyBeansWorker(JallabyRegistry jallabyRegistry, BeansRegistry beansRegistry) {
@@ -57,8 +61,11 @@ public class JallabyBeansWorker extends Thread {
 
 	public void run() {
 		try {
-			Path deployDirectory = Paths
-					.get(System.getProperty("user.dir") + System.getProperty("file.separator") + "deploy");
+			Path deployDirectory = Paths.get(System.getProperty("user.dir") +
+					System.getProperty("file.separator") + "deploy");
+			
+			registerExistingStateMachines(deployDirectory);
+
 			WatchService watcher = FileSystems.getDefault().newWatchService();
 			WatchKey key = deployDirectory.register(watcher, ENTRY_CREATE, ENTRY_MODIFY);
 
@@ -100,7 +107,14 @@ public class JallabyBeansWorker extends Thread {
 					Path file = deployDirectory.resolve(name);
 
 					if (file.getFileName().toString().endsWith(".sma")) {
-						processFile(file);
+						if (kind == ENTRY_CREATE) {
+							createStateMachine(file);
+						} else if (kind == ENTRY_MODIFY) {
+							unregisterStateMachine(file);
+							createStateMachine(file);
+						} else if (kind == ENTRY_DELETE) {
+							unregisterStateMachine(file);
+						}
 					}
 				}
 
@@ -117,20 +131,35 @@ public class JallabyBeansWorker extends Thread {
 		}
 	}
 
+	private void registerExistingStateMachines(final Path deployDirectory) {
+		deployDirectory.forEach(path -> {
+			if (path.getFileName().toString().endsWith(".sma")) {
+				createStateMachine(path);
+			}
+		});
+	}
+
 	@SuppressWarnings("unchecked")
 	static <T> WatchEvent<T> cast(WatchEvent<?> event) {
 		return (WatchEvent<T>) event;
 	}
 
-	private void processFile(Path file) {
+	private void createStateMachine(Path file) {
 		StateMachine stateMachine = buildStateMachine(file);
 
 		if (stateMachine != null) {
+			stateMachines.put(file, stateMachine.getName());
 			registry.register(stateMachine);
 		}
 	}
 
 	private StateMachine buildStateMachine(Path file) {
 		return stateMachineBuilder.build(file);
+	}
+
+	private void unregisterStateMachine(Path file) {
+		if (stateMachines.containsKey(file)) {
+			registry.unregister(stateMachines.get(file));
+		}
 	}
 }
