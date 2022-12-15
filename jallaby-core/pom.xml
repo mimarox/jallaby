@@ -7,6 +7,7 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<name>Jallaby Core</name>
 	<description>The Jallaby Hierarchical State Machine Container Core Module</description>
+	<url>https://github.com/mimarox/jallaby/tree/main/jallaby-core</url>
 	<inceptionYear>2022</inceptionYear>
 	<licenses>
 		<license>
@@ -56,7 +57,7 @@
 		<dependency>
 			<groupId>org.jallaby</groupId>
 			<artifactId>jallaby-core-api</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
@@ -259,7 +260,7 @@
 					<plugin>
 						<groupId>org.sonatype.plugins</groupId>
 						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>1.6.7</version>
+						<version>1.6.13</version>
 						<extensions>true</extensions>
 						<configuration>
 							<serverId>ossrh</serverId>
