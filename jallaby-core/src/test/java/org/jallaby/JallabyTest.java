@@ -16,7 +16,6 @@
 
 package org.jallaby;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -43,25 +42,24 @@ public class JallabyTest {
 		Jallaby jallaby = new Jallaby();
 		
 		String stateMachineName = "jallaby-one";
-		State initialState = buildInitialState();
-		
-		JallabyRegistry registry = JallabyRegistry.getInstance();
-		registry.register(new StateMachine(stateMachineName, initialState, event -> true));
-		
-		UUID instanceId = UUID.randomUUID();
+		String instanceId = UUID.randomUUID().toString();
 		String eventName = "start";
 		Map<String, Object> payload = new HashMap<>();
+		Event event = new Event(stateMachineName, instanceId, eventName, payload);
 		
-		Event event = new Event(stateMachineName, instanceId.toString(), eventName, payload);
+		State initialState = buildInitialState(event);
+		
+		JallabyRegistry registry = JallabyRegistry.getInstance();
+		registry.register(new StateMachine(stateMachineName, initialState, e -> true));
+		
 		EventResult actualResult = jallaby.receiveEvent(event);
 		
-		EventResult expectedResult = new EventResult(stateMachineName, instanceId.toString(),
-				"started");
+		EventResult expectedResult = new EventResult(stateMachineName, instanceId, "started");
 		
 		assertEquals(actualResult, expectedResult);
 	}
 	
-	private State buildInitialState() throws Exception {
+	private State buildInitialState(final Event event) throws Exception {
 		State initialState = mock(State.class);
 		State startedState = mock(State.class);
 		Transition initialToStartedTransition = mock(Transition.class);
@@ -71,7 +69,7 @@ public class JallabyTest {
 		targetStates.add(startedState);
 		
 		when(initialState.getName()).thenReturn("initial");
-		when(initialState.offerEvent(any())).thenReturn(initialToStartedTransition);
+		when(initialState.offerEvent(event)).thenReturn(initialToStartedTransition);
 		
 		when(initialToStartedTransition.getTransitionActionGroups())
 		.thenReturn(new ArrayList<>());
