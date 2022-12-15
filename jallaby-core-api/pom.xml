@@ -5,6 +5,7 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<name>API for Jallaby Core</name>
 	<description>API for Jallaby Core</description>
+	<url>https://github.com/mimarox/jallaby/tree/main/jallaby-core-api</url>
 	<inceptionYear>2022</inceptionYear>
 	<licenses>
 		<license>
