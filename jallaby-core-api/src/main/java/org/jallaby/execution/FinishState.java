@@ -17,8 +17,8 @@
 package org.jallaby.execution;
 
 /**
- * Enum listing options of a {@link State} being {@link #FINISHED} or
- * {@link #ONGOING} after returning from the {@link State#performEntryAction(java.util.Map)}
+ * Enum listing options of a {@code State} being {@link #FINISHED} or
+ * {@link #ONGOING} after returning from the {@code State.performEntryAction(java.util.Map)}
  * method.
  * 
  * @author Matthias Rothe
