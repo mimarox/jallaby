@@ -35,7 +35,8 @@ import net.sf.extcos.ComponentScanner;
  * @author Matthias Rothe
  */
 public class BeanClassesProvider {
-
+	private static final Object MUTEX = new Object();
+	
 	/**
 	 * Provide the bean classes from the given URL and base packages.
 	 * 
@@ -51,20 +52,22 @@ public class BeanClassesProvider {
 		Set<Class<? extends EventValidator>> eventValidators = new HashSet<>();
 		Set<Class<? extends Module>> modules = new HashSet<>();
 		
-		ComponentScanner scanner = new ComponentScanner();
-		scanner.getClasses(new ComponentQuery() {
-			
-			@Override
-			protected void query() {
-				select().from(basePackages).within(url)
-				.andStore(
-					thoseAnnotatedWith(State.class).into(states),
-					thoseAnnotatedWith(Transition.class).into(transitions),
-					thoseImplementing(EventValidator.class).into(eventValidators),
-					thoseImplementing(Module.class).into(modules)
-				);
-			}
-		});
+		synchronized (MUTEX) {
+			ComponentScanner scanner = new ComponentScanner();
+			scanner.getClasses(new ComponentQuery() {
+				
+				@Override
+				protected void query() {
+					select().from(basePackages).within(url)
+					.andStore(
+						thoseAnnotatedWith(State.class).into(states),
+						thoseAnnotatedWith(Transition.class).into(transitions),
+						thoseImplementing(EventValidator.class).into(eventValidators),
+						thoseImplementing(Module.class).into(modules)
+					);
+				}
+			});
+		}
 				
 		beanClasses.setStates(states);
 		beanClasses.setTransitions(transitions);
