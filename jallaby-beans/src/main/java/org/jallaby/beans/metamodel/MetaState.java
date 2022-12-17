@@ -44,6 +44,7 @@ import org.jallaby.beans.xml.model.effective.EffectiveXmlTransition;
 import org.jallaby.event.Event;
 import org.jallaby.event.EventProcessingException;
 import org.jallaby.event.InvalidEventException;
+import org.jallaby.execution.FinishState;
 import org.jallaby.execution.State;
 import org.jallaby.execution.Transition;
 import org.slf4j.Logger;
@@ -266,14 +267,20 @@ public class MetaState implements LifecycleBean, State {
 	}
 
 	@Override
-	public void performEntryAction(Map<String, Map<String, Object>> eventData) {
+	public FinishState performEntryAction(Map<String, Map<String, Object>> eventData) {
 		try {
 			if (entryActionMethod != null) {
-				entryActionMethod.invoke(instance, eventData);
+				Object result = entryActionMethod.invoke(instance, eventData);
+				
+				if (result != null && result == FinishState.FINISHED) {
+					return (FinishState) result;
+				}
 			}
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			LOGGER.warn("Unable to execute entry action method", e);
 		}
+		
+		return FinishState.ONGOING;
 	}
 
 	@Override

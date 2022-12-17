@@ -16,6 +16,18 @@
 
 package org.jallaby.execution;
 
+import java.util.Map;
+
+/**
+ * A guard checking whether the {@link Transition} it belongs to can proceed or not.
+ * 
+ * @author Matthias Rothe
+ */
 public interface TransitionGuard {
-	boolean canProceed();
+	
+	/**
+	 * @param eventData the event data of all events that led to this {@link Transition} being executed
+	 * @return {@code true} if and only if the {@link Transition} can proceed, {@code false} otherwise
+	 */
+	boolean canProceed(Map<String, Map<String, Object>> eventData);
 }

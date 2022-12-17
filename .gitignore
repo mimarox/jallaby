@@ -2,6 +2,7 @@
 deploy/
 test-output/
 target/
+testbed/
 .checkstyle
 .classpath
 .project

@@ -19,14 +19,15 @@ package org.jallaby.beans;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.jallaby.beans.metamodel.LifecycleBean;
 import org.jallaby.beans.metamodel.MetaState;
 import org.jallaby.beans.metamodel.MetaTransition;
 
 public class BeansRegistry {
-	private final Set<MetaState> states = new HashSet<>();
-	private final Set<MetaTransition> transitions = new HashSet<>();
+	private final Set<MetaState> states = new CopyOnWriteArraySet<>();
+	private final Set<MetaTransition> transitions = new CopyOnWriteArraySet<>();
 	
 	public synchronized Set<LifecycleBean> getAllLifecycleBeans() {
 		HashSet<LifecycleBean> beans = new HashSet<>();

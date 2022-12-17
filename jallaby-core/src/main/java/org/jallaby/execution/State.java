@@ -21,10 +21,46 @@ import java.util.Map;
 import org.jallaby.event.Event;
 import org.jallaby.event.EventProcessingException;
 
+/**
+ * States of a {@link StateMachine} implement this interface.
+ * 
+ * @author Matthias Rothe
+ */
 public interface State {
+	
+	/**
+	 * Offers the state an event, upon which the state might return a transition
+	 * to another state.
+	 * 
+	 * @param event the event to offer
+	 * @return the transition, if any
+	 * @throws EventProcessingException if an exception occurs while processing the event
+	 */
 	Transition offerEvent(Event event) throws EventProcessingException;
+	
+	/**
+	 * @return the event data of all successfully offered states
+	 */
 	Map<String, Map<String, Object>> getEventData();
-	void performEntryAction(Map<String, Map<String, Object>> eventData);
+	
+	/**
+	 * The entry action for the state.
+	 * 
+	 * @param eventData the event data of all successfully offered states that led to this state being entered
+	 * @return either {@link FinishState#FINISHED} or {@link FinishState#ONGOING}
+	 * @see FinishState
+	 */
+	FinishState performEntryAction(Map<String, Map<String, Object>> eventData);
+	
+	/**
+	 * The exit action for the state.
+	 * 
+	 * @param eventData the event data of all successfully offered states that led to this state being exited
+	 */
 	void performExitAction(Map<String, Map<String, Object>> eventData);
+	
+	/**
+	 * @return the name of the state
+	 */
 	String getName();
 }

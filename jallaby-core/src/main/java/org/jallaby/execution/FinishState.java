@@ -16,19 +16,22 @@
 
 package org.jallaby.execution;
 
-import java.util.Map;
-
 /**
- * An action to be executed during a {@link Transition}.
+ * Enum listing options of a {@link State} being {@link #FINISHED} or
+ * {@link #ONGOING} after returning from the {@link State#performEntryAction(java.util.Map)}
+ * method.
  * 
  * @author Matthias Rothe
  */
-public interface TransitionAction {
+public enum FinishState {
 	
 	/**
-	 * Runs the action.
-	 * 
-	 * @param eventData the event data of all events that led to this {@link Transition} being executed
+	 * The state is finished and can be exited from.
 	 */
-	void run(Map<String, Map<String, Object>> eventData);
+	FINISHED,
+	
+	/**
+	 * The state is still ongoing.
+	 */
+	ONGOING;
 }

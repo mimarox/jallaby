@@ -17,16 +17,19 @@
 package org.jallaby.beans;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.jallaby.JallabyRegistry;
 import org.jallaby.beans.metamodel.MetaState;
 import org.jallaby.beans.metamodel.sourcing.BeanClasses;
 import org.jallaby.beans.metamodel.sourcing.BeanClassesProvider;
@@ -47,32 +50,45 @@ import com.google.inject.Module;
  * 
  * @author Matthias Rothe
  */
-public class StateMachineBuilder {
+public class StateMachineBuilder extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StateMachineBuilder.class);
 	
+	private final JallabyRegistry jallabyRegistry;
 	private final BeansRegistry beansRegistry;
+	private final Map<Path, String> stateMachines;
+	private final Path path;
 	
 	/**
 	 * Ctor.
 	 * 
+	 * @param jallabyRegistry the jallaby registry
 	 * @param beansRegistry the beans registry
+	 * @param stateMachines the state machines
+	 * @param path The file to build the state machine from
 	 */
-	public StateMachineBuilder(BeansRegistry beansRegistry) {
+	public StateMachineBuilder(final JallabyRegistry jallabyRegistry, final BeansRegistry beansRegistry,
+			final Map<Path, String> stateMachines, final Path path) {
+		super("StateMachineBuilder");
+
+		Objects.requireNonNull(jallabyRegistry, "jallabyRegistry must not be null");
 		Objects.requireNonNull(beansRegistry, "beansRegistry must not be null");
+		Objects.requireNonNull(stateMachines, "stateMachines must not be null");
+		Objects.requireNonNull(path, "path must not be null");
+		
+		this.jallabyRegistry = jallabyRegistry;
 		this.beansRegistry = beansRegistry;
+		this.stateMachines = stateMachines;
+		this.path = path;
 	}
 
 	/**
 	 * Builds a state machine from the deployed SMA (State Machine Archive) file.
-	 * 
-	 * @param file The file to build the state machine from
-	 * @return the state machine
 	 */
-	public StateMachine build(Path file) {
-		try {
-			File smaFile = file.toFile();
-			JarFile jarFile = new JarFile(smaFile);
-			
+	@Override
+	public void run() {
+		File smaFile = path.toFile();
+
+		try (JarFile jarFile = new JarFile(smaFile)) {
 			Attributes attributes = jarFile.getManifest().getMainAttributes();
 			String[] basePackages = attributes.getValue("base-packages").split(", ");
 			
@@ -83,15 +99,14 @@ public class StateMachineBuilder {
 			
 			JarEntry stateMachineXmlEntry =
 					jarFile.getJarEntry("META-INF/state-machine.xml");
-			EffectiveXmlStateMachine exsm = new XmlDeclarationProvider().provide(
-					jarFile.getInputStream(stateMachineXmlEntry));
 			
-			jarFile.close();
-
-			return buildStateMachineUsing(beanClasses, exsm);
+			try (InputStream is = jarFile.getInputStream(stateMachineXmlEntry)) {
+				EffectiveXmlStateMachine exsm = new XmlDeclarationProvider().provide(is);
+				StateMachine stateMachine = buildStateMachineUsing(beanClasses, exsm);
+				registerStateMachine(stateMachine);
+			}
 		} catch (Exception e) {
 			LOGGER.warn("Failed building the state machine", e);
-			return null;
 		}
 	}
 
@@ -145,5 +160,15 @@ public class StateMachineBuilder {
 			
 			return true;
 		};
+	}
+	
+	private void registerStateMachine(final StateMachine stateMachine) {
+		if (stateMachine != null) {
+			stateMachines.put(path, stateMachine.getName());
+			jallabyRegistry.register(stateMachine);
+			
+			LOGGER.info(String.format("Successfully created state machine [%s]!", 
+					stateMachine.getName()));
+		}
 	}
 }

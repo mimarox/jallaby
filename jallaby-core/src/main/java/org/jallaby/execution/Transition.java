@@ -18,8 +18,26 @@ package org.jallaby.execution;
 
 import java.util.List;
 
+/**
+ * Transitions of a {@link StateMachine}'s {@link State}s implement this interface.
+ * 
+ * @author Matthias Rothe
+ */
 public interface Transition {
+	
+	/**
+	 * @return the list of {@link TransitionGuard}s guarding this transition
+	 */
 	List<TransitionGuard> getTransitionGuards();
+	
+	/**
+	 * @return the list of {@link TransitionActionGroup}s to be executed during this transition
+	 */
 	List<TransitionActionGroup> getTransitionActionGroups();
+	
+	/**
+	 * @return the {@link StateInfo} describing how many states to exit and which states to enter
+	 * by executing this transition
+	 */
 	StateInfo getTargetStateInfo();
 }

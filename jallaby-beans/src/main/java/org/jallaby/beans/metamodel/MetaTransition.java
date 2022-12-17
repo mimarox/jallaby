@@ -18,10 +18,13 @@ package org.jallaby.beans.metamodel;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.PriorityQueue;
 
@@ -32,6 +35,7 @@ import org.jallaby.beans.BeansRegistry;
 import org.jallaby.beans.annotations.ActionGroup;
 import org.jallaby.beans.annotations.Concurrency;
 import org.jallaby.beans.metamodel.sourcing.BeanClasses;
+import org.jallaby.beans.util.TypeToken;
 import org.jallaby.beans.xml.model.XmlStateInfo;
 import org.jallaby.beans.xml.model.effective.EffectiveXmlState;
 import org.jallaby.beans.xml.model.effective.EffectiveXmlStateMachine;
@@ -65,10 +69,23 @@ public class MetaTransition implements LifecycleBean, Transition {
 		}
 
 		@Override
-		public boolean canProceed() {
+		public boolean canProceed(final Map<String, Map<String, Object>> eventData) {
 			try {
-				return (boolean) guardMethod.invoke(instance, (Object[]) null);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				Parameter[] parameters = guardMethod.getParameters();
+				
+				if (parameters.length == 0) {
+					return (boolean) guardMethod.invoke(instance, (Object[]) null);
+				} else if (parameters.length == 1 && isEventDataParameter(
+						parameters[0].getParameterizedType())) {
+					return (boolean) guardMethod.invoke(instance, eventData);
+				} else {
+					LOGGER.warn(String.format("Transition guard invocation failed."
+							+ " Class: [%s], Method: [%s]. Transition will not proceed!",
+							instance.getClass().getCanonicalName(),	guardMethod.getName()));
+					return false;
+					
+				}
+			} catch (Exception e) {
 				LOGGER.warn(String.format("Transition guard invocation failed."
 						+ " Class: [%s], Method: [%s]. Transition will not proceed!",
 						instance.getClass().getCanonicalName(),	guardMethod.getName()), e);
@@ -119,9 +136,20 @@ public class MetaTransition implements LifecycleBean, Transition {
 		}
 		
 		@Override
-		public void run() {
+		public void run(final Map<String, Map<String, Object>> eventData) {
 			try {
-				actionMethod.invoke(instance, (Object[]) null);
+				Parameter[] parameters = actionMethod.getParameters();
+				
+				if (parameters.length == 0) {
+					actionMethod.invoke(instance, (Object[]) null);
+				} else if (parameters.length == 1 && isEventDataParameter(
+						parameters[0].getParameterizedType())) {
+					actionMethod.invoke(instance, eventData);
+				} else {
+					LOGGER.warn(String.format("Transition action invocation failed."
+							+ " Class: [%s], Method: [%s]",
+							instance.getClass().getCanonicalName(),	actionMethod.getName()));
+				}
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				LOGGER.warn(String.format("Transition action invocation failed."
 						+ " Class: [%s], Method: [%s]",
@@ -403,5 +431,9 @@ public class MetaTransition implements LifecycleBean, Transition {
 
 	public String toState() {
 		return toState;
+	}
+	
+	private boolean isEventDataParameter(final Type type) {
+		return new TypeToken<Map<String, Map<String, Object>>>() {}.equals(TypeToken.of(type));
 	}
 }

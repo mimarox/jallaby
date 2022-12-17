@@ -107,7 +107,7 @@ public class Launcher {
 
 		String httpBaseUri = startHttpServer();
 		System.out.println(String.format("HTTP server started at %s", httpBaseUri));
-		System.out.println("Press any key to stop the server...");
+		System.out.println("Press Ctrl+C to stop the server...");
 		
 		System.in.read();
 

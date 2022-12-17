@@ -18,6 +18,12 @@ package org.jallaby.execution;
 
 import java.util.Deque;
 
+/**
+ * Data object for {@link Transition}s.
+ * 
+ * @author Matthias Rothe
+ * @see Transition#getTargetStateInfo()
+ */
 public interface StateInfo {
 	
 	/**
@@ -28,5 +34,8 @@ public interface StateInfo {
 	 */
 	int getStatesToExit();
 
+	/**
+	 * @return the states to enter
+	 */
 	Deque<State> getStates();
 }

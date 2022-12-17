@@ -16,10 +16,10 @@
 
 package org.jallaby;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jallaby.execution.StateMachine;
 
@@ -31,8 +31,8 @@ import org.jallaby.execution.StateMachine;
 public class JallabyRegistry {
 	private static JallabyRegistry INSTANCE;
 	
-	private final Map<String, StateMachine> blueprints = new HashMap<>();
-	private final Map<String, StateMachine> instances = new HashMap<>();
+	private final Map<String, StateMachine> blueprints = new ConcurrentHashMap<>();
+	private final Map<String, StateMachine> instances = new ConcurrentHashMap<>();
 	
 	private JallabyRegistry() {
 	}

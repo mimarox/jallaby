@@ -17,8 +17,28 @@ package org.jallaby.execution;
 
 import java.util.List;
 
+/**
+ * A group of {@link TransitionAction}s to be executed during a {@link Transition},
+ * either concurrently or sequentially.
+ * 
+ * @author Matthias Rothe
+ */
 public interface TransitionActionGroup {
+	
+	/**
+	 * @return {@code true} if the {@link TransitionAction}s of this group are to be executed
+	 * concurrently, {@code false} otherwise
+	 */
 	boolean isConcurrent();
+	
+	/**
+	 * @return {@code true} if the {@link TransitionAction}s of this group are to be executed
+	 * sequentially, {@code false} otherwise
+	 */
 	boolean isSequential();
+	
+	/**
+	 * @return the list of {@link TransitionAction}s belonging to this group
+	 */
 	List<TransitionAction> getTransitionActions();
 }

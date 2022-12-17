@@ -13,26 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//
+
+//CHECKSTYLE:OFF
 
 package org.jallaby.beans.util;
 
 /**
- * @author Matthias Rothe
- */
-public class StringUtils {
-
-	private StringUtils() {}
-	
-	/**
-	 * Returns whether the given string is null, the empty string or the empty
-	 * string after removing all leading and trailing whitespace.
-	 * 
-	 * @param string the string to test for being blank
-	 * @return <code>true</code>, if and only if the given string is null, the empty
-	 * string or the empty string after removing all leading and trailing whitespace,
-	 * <code>false</code> otherwise
-	 */
-	public static boolean isBlank(String string) {
-		return string == null || string.trim().isEmpty();
-	}
+* Fast String Utilities.
+*
+* These string utilities provide both convenience methods and
+* performance improvements over most standard library versions. The
+* main aim of the optimizations is to avoid object creation unless
+* absolutely required.
+*/
+public class StringUtils
+{
+	 /**
+	  * Test if a string is null or only has whitespace characters in it.
+	  * <p>
+	  * Note: uses codepoint version of {@link Character#isWhitespace(int)} to support Unicode better.
+	  *
+	  * <pre>
+	  *   isBlank(null)   == true
+	  *   isBlank("")     == true
+	  *   isBlank("\r\n") == true
+	  *   isBlank("\t")   == true
+	  *   isBlank("   ")  == true
+	  *   isBlank("a")    == false
+	  *   isBlank(".")    == false
+	  *   isBlank(";\n")  == false
+	  * </pre>
+	  *
+	  * @param str the string to test.
+	  * @return true if string is null or only whitespace characters, false if non-whitespace characters encountered.
+	  */
+	 public static boolean isBlank(String str)
+	 {
+	     if (str == null)
+	     {
+	         return true;
+	     }
+	     int len = str.length();
+	     for (int i = 0; i < len; i++)
+	     {
+	         if (!Character.isWhitespace(str.codePointAt(i)))
+	         {
+	             // found a non-whitespace, we can stop searching  now
+	             return false;
+	         }
+	     }
+	     // only whitespace
+	     return true;
+	 }
 }
+//CHECKSTYLE:ON

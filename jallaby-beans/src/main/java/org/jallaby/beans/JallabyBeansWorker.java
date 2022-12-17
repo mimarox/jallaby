@@ -21,6 +21,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -30,28 +31,35 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.jetty.util.resource.PathResource;
 import org.jallaby.JallabyRegistry;
-import org.jallaby.execution.StateMachine;
+import org.jallaby.beans.classloader.StateMachineClassLoader;
+import org.jallaby.beans.classloader.StateMachineContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JallabyBeansWorker extends Thread {
-	private final JallabyRegistry registry;
-	private final StateMachineBuilder stateMachineBuilder;
-	private final Map<Path, String> stateMachines = new HashMap<>();
+	private static final Logger LOGGER = LoggerFactory.getLogger(JallabyBeansWorker.class);
+	
+	private final JallabyRegistry jallabyRegistry;
+	private final BeansRegistry beansRegistry;
+	private final Map<Path, String> stateMachines = new ConcurrentHashMap<>();
 	private final Object abortMutex = new Object();
 	
 	private boolean abort;
 
-	public JallabyBeansWorker(JallabyRegistry jallabyRegistry, BeansRegistry beansRegistry) {
+	public JallabyBeansWorker(final JallabyRegistry jallabyRegistry, final BeansRegistry beansRegistry) {
 		super("JallabyBeansWorker");
 
-		Objects.requireNonNull(jallabyRegistry, "registry must not be null");
-		this.registry = jallabyRegistry;
-
-		this.stateMachineBuilder = new StateMachineBuilder(beansRegistry);
+		Objects.requireNonNull(jallabyRegistry, "jallabyRegistry must not be null");
+		Objects.requireNonNull(beansRegistry, "beansRegistry must not be null");
+		
+		this.jallabyRegistry = jallabyRegistry;
+		this.beansRegistry = beansRegistry;
 	}
 
 	public void abort() {
@@ -139,11 +147,15 @@ public class JallabyBeansWorker extends Thread {
 	}
 	
 	private void registerExistingStateMachines(final Path deployDirectory) {
-		Arrays.asList(deployDirectory.toFile().listFiles()).forEach(file -> {
-			if (file.getName().toString().endsWith(".sma")) {
-				createStateMachine(file.toPath());
-			}
-		});
+		File[] files = deployDirectory.toFile().listFiles();
+		
+		if (files != null) {
+			Arrays.asList(files).forEach(file -> {
+				if (file.getName().toString().endsWith(".sma")) {
+					createStateMachine(file.toPath());
+				}
+			});
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -152,21 +164,24 @@ public class JallabyBeansWorker extends Thread {
 	}
 
 	private void createStateMachine(Path file) {
-		StateMachine stateMachine = buildStateMachine(file);
-
-		if (stateMachine != null) {
-			stateMachines.put(file, stateMachine.getName());
-			registry.register(stateMachine);
+		try {
+			StateMachineContext context = new StateMachineContext();
+			context.setExtraClasspath(Arrays.asList(new PathResource(file)));
+			
+			StateMachineBuilder builder = new StateMachineBuilder(
+					jallabyRegistry, beansRegistry, stateMachines, file);
+			builder.setContextClassLoader(new StateMachineClassLoader(context));
+			builder.start();
+		} catch (IOException e) {
+			LOGGER.warn(String.format("Couldn't build state machine for file [%s]", file), e);
 		}
-	}
-
-	private StateMachine buildStateMachine(Path file) {
-		return stateMachineBuilder.build(file);
 	}
 
 	private void unregisterStateMachine(Path file) {
 		if (stateMachines.containsKey(file)) {
-			registry.unregister(stateMachines.get(file));
+			jallabyRegistry.unregister(stateMachines.get(file));
+			LOGGER.info(String.format("Unregistered state machine from file [%s] successfully!", 
+					file.toString()));
 		}
 	}
 }

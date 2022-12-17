@@ -16,8 +16,12 @@
 
 package org.jallaby.beans;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.jallaby.JallabyRegistry;
 import org.testng.annotations.Test;
 
 /**
@@ -29,8 +33,24 @@ public class StateMachineBuilderTest {
 	public void testBuildingStateMachine() {
 		String currentDirectory = System.getProperty("user.dir");
 		
-		BeansRegistry registry = new BeansRegistry();
-		StateMachineBuilder builder = new StateMachineBuilder(registry);
-		builder.build(Paths.get(currentDirectory + "\\deploy\\sample\\sample.sma"));
+		JallabyRegistry jallabyRegistry = JallabyRegistry.getInstance();
+		BeansRegistry beansRegistry = new BeansRegistry();
+		Map<Path, String> stateMachines = new ConcurrentHashMap<>();
+		Path path = Paths.get(currentDirectory + "\\deploy\\sample\\sample.sma");
+		
+		StateMachineBuilder builder = new StateMachineBuilder(jallabyRegistry, beansRegistry, stateMachines, path);
+		builder.start();
+		
+		waitForBuilderToFinish(builder);
+	}
+
+	private void waitForBuilderToFinish(StateMachineBuilder builder) {
+		while (builder.isAlive()) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				return;
+			}
+		}
 	}
 }
