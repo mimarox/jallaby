@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.jallaby</groupId>
 	<artifactId>jallaby-core</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2-SNAPSHOT</version>
 	<name>Jallaby Core</name>
 	<description>The Jallaby Hierarchical State Machine Container Core Module</description>
 	<url>https://github.com/mimarox/jallaby/tree/main/jallaby-core</url>
@@ -18,7 +18,7 @@
 		<connection>scm:git:https://github.com/mimarox/jallaby.git</connection>
 		<developerConnection>scm:git:https://github.com/mimarox/jallaby.git</developerConnection>
 		<url>https://github.com/mimarox/jallaby</url>
-		<tag>jallaby-core-1.2.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 	<developers>
 		<developer>
